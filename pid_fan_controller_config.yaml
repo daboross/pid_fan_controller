@@ -4,18 +4,18 @@ heat_pressure_srcs:
   - name: CPU
     wildcard_path: /sys/devices/pci0000:00/0000:00:18.3/hwmon/hwmon*/temp1_input
     PID_params:
-      set_point: 60
+      set_point: 75
       P: -0.02
       I: -0.02
-      D: -0.04
+      D: -0.001
 
   - name: LessResponsiveCPU
     wildcard_path: /sys/devices/pci0000:00/0000:00:18.3/hwmon/hwmon*/temp1_input
     PID_params:
       set_point: 60
-      P: -0.0005
-      I: -0.002
-      D: -0.001
+      P: -0.04
+      I: -0.001
+      D: -0.005
 
   - name: GPU
     wildcard_path: /sys/class/drm/card0/device/hwmon/hwmon*/temp1_input
@@ -26,61 +26,30 @@ heat_pressure_srcs:
       D: -0.0005
 
 fans:
-  - name: intake_front
+  - name: front_intake
     wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm1
     pwm_modes:
       manual: 1
       auto: 5
       pwm_mode_wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm1_enable
-    min_pwm: 100
-    max_pwm: 200
+    min_pwm: 140
+    max_pwm: 255
     # max(heat_pressure_srcs)
     # src names must be from the `name` in heat_pressure_srcs
     heat_pressure_srcs:
       - LessResponsiveCPU
-      - GPU
-  - name: intake_top
-    wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm5
-    pwm_modes:
-      manual: 1
-      auto: 5
-      pwm_mode_wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm5_enable
-    min_pwm: 100
-    max_pwm: 200
-    heat_pressure_srcs:
-      - LessResponsiveCPU
-      - GPU
-  - name: exhaust_back
-    wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm4
-    pwm_modes:
-      manual: 1
-      auto: 5
-      pwm_mode_wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm4_enable
-    min_pwm: 100
-    max_pwm: 255
-    heat_pressure_srcs:
       - CPU
       - GPU
-  - name: exhaust_top
+  - name: top_exhaust
     wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm7
     pwm_modes:
       manual: 1
       auto: 5
       pwm_mode_wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm7_enable
-    min_pwm: 100
-    max_pwm: 255
+    min_pwm: 100 # minimum pwm for fans to actually turn on is 105
+    max_pwm: 180
     heat_pressure_srcs:
-      - CPU
-      - GPU
-  - name: cpu_fan
-    wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm2
-    pwm_modes:
-      manual: 1
-      auto: 5
-      pwm_mode_wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm2_enable
-    min_pwm: 50
-    max_pwm: 200
-    heat_pressure_srcs:
+      - LessResponsiveCPU
       - CPU
   - name: gpu_fan
     wildcard_path: /sys/class/drm/card0/device/hwmon/hwmon*/pwm1
