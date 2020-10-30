@@ -118,7 +118,7 @@ impl Fan {
         assert!(percent >= 0.0 && percent <= 1.0);
         let speed = self.min_pwm + (self.max_pwm - self.min_pwm);
         write_to_fan_file(&self.pwm_path, speed)?;
-        info!("set {} to {}", self.name, speed);
+        info!("{} = {}", self.name, speed);
         Ok(())
     }
 
@@ -174,8 +174,11 @@ impl HeatPressureSource {
                 pid_controller: self.pid_controller.clone(),
             })?;
         info!(
-            "read {} as {}. outputting {}",
-            self.name, delta_t, self.last_output_value
+            "{}: read {}, target {} => {}",
+            self.name,
+            temp,
+            self.pid_controller.target(),
+            self.last_output_value
         );
         Ok(())
     }
@@ -250,25 +253,27 @@ impl State {
 struct Logger;
 
 impl log::Log for Logger {
-    fn enabled(&self, metadata: &log::Metadata) -> bool {
-        metadata.level() > log::LevelFilter::Info
+    fn enabled(&self, _metadata: &log::Metadata) -> bool {
+        true
     }
     fn log(&self, record: &log::Record) {
-        if self.enabled(record.metadata()) {
-            println!(
-                "[{}][{}]: {}",
-                record.level(),
-                record.target(),
-                record.args()
-            );
-        }
+        println!(
+            "[{}][{}]: {}",
+            record.level(),
+            record.target(),
+            record.args()
+        );
     }
     fn flush(&self) {}
 }
 
 fn startup() -> Result<(State, options::Mode), Error> {
     log::set_logger(&Logger).expect("should only startup once");
+    log::set_max_level(log::LevelFilter::Error);
     let options = options::get()?;
+    if options.verbose {
+        log::set_max_level(log::LevelFilter::Info);
+    }
     Ok((State::from_file(&options.config_path)?, options.mode))
 }
 

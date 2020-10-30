@@ -7,6 +7,7 @@ use crate::error::*;
 pub struct Options {
     pub config_path: PathBuf,
     pub mode: Mode,
+    pub verbose: bool,
 }
 
 pub enum Mode {
@@ -26,6 +27,7 @@ pub fn get() -> Result<Options, Error> {
         ),
         "FILE",
     );
+    options.optflag("v", "verbose", "enable verbose logging");
     options.optflag(
         "",
         "run-fan-control",
@@ -74,5 +76,6 @@ pub fn get() -> Result<Options, Error> {
             .or_else(|| std::env::var_os("PID_FAN_CONFIG_FILE").map(Into::into))
             .unwrap_or_else(|| crate::DEFAULT_CONFIG_PATH.into()),
         mode,
+        verbose: matches.opt_present("verbose"),
     })
 }
