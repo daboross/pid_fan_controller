@@ -1,0 +1,20 @@
+[package]
+name = "pid_fan_controller"
+version = "0.1.0"
+authors = ["ThunderMikey", "David Ross <daboross@daboross.net>"]
+edition = "2018"
+license = "GPL-3.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = "1.0.115"
+serde_derive = "1.0.115"
+serde_yaml = "0.8.13"
+getopts = "0.2.21"
+snafu = "0.6.8"
+glob = "0.3.0"
+pid_control = "0.7.2"
+ordered-float = "2.0.0"
+log = "0.4.11"
+ctrlc = "3.1.7"
