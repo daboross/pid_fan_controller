@@ -1,97 +1,94 @@
 # PID sample interval in seconds
-sample_interval: 0.5
+sample_interval: 0.25
 heat_pressure_srcs:
   - name: CPU
     wildcard_path: /sys/devices/pci0000:00/0000:00:18.3/hwmon/hwmon*/temp1_input
     PID_params:
-      set_point: 63
-      P: -0.005
-      I: -0.005
-      D: -0.006
+      set_point: 60
+      P: -0.02
+      I: -0.02
+      D: -0.04
+
+  - name: LessResponsiveCPU
+    wildcard_path: /sys/devices/pci0000:00/0000:00:18.3/hwmon/hwmon*/temp1_input
+    PID_params:
+      set_point: 60
+      P: -0.0005
+      I: -0.002
+      D: -0.001
 
   - name: GPU
-    wildcard_path: /sys/devices/pci0000:00/0000:00:03.1/0000:26:00.0/0000:27:00.0/0000:28:00.0/hwmon/hwmon*/temp1_input
+    wildcard_path: /sys/class/drm/card0/device/hwmon/hwmon*/temp1_input
     PID_params:
-      set_point: 70
+      set_point: 65
       P: -0.03
       I: -0.002
       D: -0.0005
 
 fans:
-  - name: intake_top
-    wildcard_path: /sys/devices/platform/nct6775.2592/hwmon/hwmon*/pwm5
+  - name: intake_front
+    wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm1
     pwm_modes:
       manual: 1
       auto: 5
-      pwm_mode_wildcard_path: /sys/devices/platform/nct6775.2592/hwmon/hwmon*/pwm5_enable
-    min_pwm: 60
-    max_pwm: 255
+      pwm_mode_wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm1_enable
+    min_pwm: 100
+    max_pwm: 200
     # max(heat_pressure_srcs)
     # src names must be from the `name` in heat_pressure_srcs
     heat_pressure_srcs:
-      - CPU
+      - LessResponsiveCPU
       - GPU
-  - name: intake_mid
-    wildcard_path: /sys/devices/platform/nct6775.2592/hwmon/hwmon*/pwm6
+  - name: intake_top
+    wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm5
     pwm_modes:
       manual: 1
       auto: 5
-      pwm_mode_wildcard_path: /sys/devices/platform/nct6775.2592/hwmon/hwmon*/pwm6_enable
-    min_pwm: 70
-    max_pwm: 255
+      pwm_mode_wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm5_enable
+    min_pwm: 100
+    max_pwm: 200
     heat_pressure_srcs:
-      - CPU
+      - LessResponsiveCPU
       - GPU
-  - name: intake_bottom
-    wildcard_path: /sys/devices/platform/nct6775.2592/hwmon/hwmon*/pwm4
+  - name: exhaust_back
+    wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm4
     pwm_modes:
       manual: 1
       auto: 5
-      pwm_mode_wildcard_path: /sys/devices/platform/nct6775.2592/hwmon/hwmon*/pwm4_enable
-    min_pwm: 60
+      pwm_mode_wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm4_enable
+    min_pwm: 100
     max_pwm: 255
     heat_pressure_srcs:
       - CPU
       - GPU
   - name: exhaust_top
-    wildcard_path: /sys/devices/platform/nct6775.2592/hwmon/hwmon*/pwm1
+    wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm7
     pwm_modes:
       manual: 1
       auto: 5
-      pwm_mode_wildcard_path: /sys/devices/platform/nct6775.2592/hwmon/hwmon*/pwm1_enable
-    min_pwm: 50
-    max_pwm: 255
-    heat_pressure_srcs:
-      - CPU
-      - GPU
-  - name: exhaust_back
-    wildcard_path: /sys/devices/platform/nct6775.2592/hwmon/hwmon*/pwm3
-    pwm_modes:
-      manual: 1
-      auto: 5
-      pwm_mode_wildcard_path: /sys/devices/platform/nct6775.2592/hwmon/hwmon*/pwm3_enable
-    min_pwm: 80
+      pwm_mode_wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm7_enable
+    min_pwm: 100
     max_pwm: 255
     heat_pressure_srcs:
       - CPU
       - GPU
   - name: cpu_fan
-    wildcard_path: /sys/devices/platform/nct6775.2592/hwmon/hwmon*/pwm2
+    wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm2
     pwm_modes:
       manual: 1
       auto: 5
-      pwm_mode_wildcard_path: /sys/devices/platform/nct6775.2592/hwmon/hwmon*/pwm2_enable
-    min_pwm: 70
-    max_pwm: 190
+      pwm_mode_wildcard_path: /sys/devices/platform/nct6775.656/hwmon/hwmon*/pwm2_enable
+    min_pwm: 50
+    max_pwm: 200
     heat_pressure_srcs:
       - CPU
   - name: gpu_fan
-    wildcard_path: /sys/devices/pci0000:00/0000:00:03.1/0000:26:00.0/0000:27:00.0/0000:28:00.0/hwmon/hwmon*/pwm1
+    wildcard_path: /sys/class/drm/card0/device/hwmon/hwmon*/pwm1
     pwm_modes:
       manual: 1
       auto: 2
-      pwm_mode_wildcard_path: /sys/devices/pci0000:00/0000:00:03.1/0000:26:00.0/0000:27:00.0/0000:28:00.0/hwmon/hwmon*/pwm1_enable
-    min_pwm: 30
-    max_pwm: 120
+      pwm_mode_wildcard_path: /sys/class/drm/card0/device/hwmon/hwmon*/pwm1_enable
+    min_pwm: 56
+    max_pwm: 110
     heat_pressure_srcs:
       - GPU
