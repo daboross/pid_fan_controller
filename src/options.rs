@@ -48,7 +48,7 @@ pub fn get() -> Result<Options, Error> {
             options.parse(args).context(GetoptsFailure)?,
         )
     };
-    if matches.opt_present("h") {
+    if matches.opt_present("help") {
         eprint!(
             "{}",
             options.usage(&format!("Usage: {} [options]", program.to_string_lossy()))
@@ -71,7 +71,7 @@ pub fn get() -> Result<Options, Error> {
 
     Ok(Options {
         config_path: matches
-            .opt_str("c")
+            .opt_str("config")
             .map(Into::into)
             .or_else(|| std::env::var_os("PID_FAN_CONFIG_FILE").map(Into::into))
             .unwrap_or_else(|| crate::DEFAULT_CONFIG_PATH.into()),

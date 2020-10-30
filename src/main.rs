@@ -48,7 +48,7 @@ fn read_from_temp_file(path: &Path) -> Result<f64, Error> {
     let value = std::fs::read_to_string(path).with_context(|| ReadingFile {
         filename: path.to_owned(),
     })?;
-    let val: u64 = value.parse().with_context(|| ParsingResult {
+    let val: u64 = value.trim_end().parse().with_context(|| ParsingResult {
         value,
         filename: path.to_owned(),
     })?;
@@ -116,7 +116,7 @@ impl Fan {
 
     fn set_pwm_speed_percent(&self, percent: f64) -> Result<(), Error> {
         assert!(percent >= 0.0 && percent <= 1.0);
-        let speed = self.min_pwm + (self.max_pwm - self.min_pwm);
+        let speed = self.min_pwm + ((self.max_pwm - self.min_pwm) as f64 * percent).round() as u32;
         write_to_fan_file(&self.pwm_path, speed)?;
         info!("{} = {}", self.name, speed);
         Ok(())
