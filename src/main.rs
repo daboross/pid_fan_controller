@@ -61,6 +61,7 @@ struct Fan {
     pwm_path: PathBuf,
     min_pwm: u32,
     max_pwm: u32,
+    max_pwm_when_critical: u32,
     heat_sources_indices: Vec<usize>,
     pwm_mode_manual: u32,
     pwm_mode_auto: u32,
@@ -98,6 +99,7 @@ impl Fan {
             pwm_path: match_single_file_glob(&fan.wildcard_path)?,
             min_pwm: fan.min_pwm,
             max_pwm: fan.max_pwm,
+            max_pwm_when_critical: fan.max_pwm_when_critical.unwrap_or(fan.max_pwm),
             pwm_mode_manual: fan.pwm_modes.manual,
             pwm_mode_auto: fan.pwm_modes.auto,
             pwm_mode_path: match_single_file_glob(&fan.pwm_modes.pwm_mode_wildcard_path)?,
@@ -114,9 +116,13 @@ impl Fan {
         )
     }
 
+    /// Set fan PWM speed. Percentage is allowed to go above 1.0 only when heat
+    /// sources have hit emergency temperatures.
     fn set_pwm_speed_percent(&self, percent: f64) -> Result<(), Error> {
-        assert!(percent >= 0.0 && percent <= 1.0);
-        let speed = self.min_pwm + ((self.max_pwm - self.min_pwm) as f64 * percent).round() as u32;
+        assert!(percent >= 0.0);
+        let speed = self
+            .max_pwm_when_critical
+            .min(self.min_pwm + ((self.max_pwm - self.min_pwm) as f64 * percent).round() as u32);
         write_to_fan_file(&self.pwm_path, speed)?;
         info!("{} = {}", self.name, speed);
         Ok(())
@@ -141,6 +147,7 @@ struct HeatPressureSource {
     pid_controller: PIDController,
     last_update_time: Option<Instant>,
     last_output_value: NotNan<f64>,
+    critical_temperature: NotNan<f64>,
 }
 
 impl HeatPressureSource {
@@ -158,6 +165,13 @@ impl HeatPressureSource {
             pid_controller,
             last_update_time: None,
             last_output_value: NotNan::new(1.0).unwrap(),
+            critical_temperature: NotNan::new(
+                source
+                    .pid_parameters
+                    .critical_temperature
+                    .unwrap_or(std::f64::INFINITY),
+            )
+            .unwrap(),
         })
     }
     fn update(&mut self) -> Result<(), Error> {
@@ -168,6 +182,19 @@ impl HeatPressureSource {
             .map(|v| (now - v).as_secs_f64())
             .unwrap_or(0.0);
         self.last_update_time = Some(now);
+        if temp > *self.critical_temperature {
+            self.pid_controller.set_limits(0.0, std::f64::INFINITY);
+        } else {
+            // This will result in a sudden fan speed change whenever we leave
+            // critical temperature range (thus, if the system is hovering
+            // around critical, we'll let it hit the temp, then slowly ramp up
+            // fans, then once it falls back down immediately clamp fans back to
+            // their regular values).
+            //
+            // That's kind of the point, though. The critical temperature fan
+            // unlimiting is intended as an emergency measure, not for regular use.
+            self.pid_controller.set_limits(0.0, 1.0);
+        }
         self.last_output_value = NotNan::new(self.pid_controller.update(temp, delta_t))
             .with_context(|| PidControllerNan {
                 name: self.name.clone(),

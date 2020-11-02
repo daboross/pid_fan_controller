@@ -24,6 +24,8 @@ pub struct HeatPressureSourcePidParameters {
     pub i: f64,
     #[serde(rename = "D")]
     pub d: f64,
+    #[serde(default)]
+    pub critical_temperature: Option<f64>,
 }
 
 #[derive(Deserialize)]
@@ -33,6 +35,8 @@ pub struct Fan {
     pub pwm_modes: FanPwmModes,
     pub min_pwm: u32,
     pub max_pwm: u32,
+    #[serde(default)]
+    pub max_pwm_when_critical: Option<u32>,
     pub heat_pressure_srcs: Vec<String>,
 }
 
